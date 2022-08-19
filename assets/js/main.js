@@ -29,6 +29,7 @@ const items = [
 
 /* Contador para las cantidades */
   items.map ( x => x.cantidad = 1)
+  items.map ( x => x.stockDisponible = x.quantity)
 
   //localStorage
 document.addEventListener( "DOMContentLoaded", () =>{
@@ -108,9 +109,12 @@ const contador = document.getElementById("cart-counter")
 //para el precio total
 const preciototal = document.getElementById("preciototal")
 
+
 //Elimino del storage y del DOM
 botonEliminar.addEventListener('click', () => {
     localStorage.removeItem('shoppingCart');
+    items.map ( x => x.cantidad = 1) /* Debo olocarlo en una funcion */
+    items[prodId-1].quantity = items[prodId-1].stockDisponible /* Debo olocarlo en una funcion */
     shoppingCart.length = 0;
     actualizarshoppingCart()
     
@@ -125,9 +129,9 @@ items.forEach((articulos) => {
     div.innerHTML = `
     <h2>${articulos.name}</h2>
     <img class="img-product"src=${articulos.image} alt="">
-    <p> ${articulos.category}</p>
+    <p class="categoria"> Categoria: ${articulos.category}</p>
     <p class="price">Precio $${articulos.price}</p>
-    <p>Cantidad: <input type="text" name="cantidad" placeholder="Cuanto va a querer?" class="qty-input" value="1"></p>
+    <p>Cantidad: 1 </p>
     <button id="button${articulos.id}" class="btn-add">Agregar al shoppingCart</button>
     
     `
@@ -142,19 +146,30 @@ items.forEach((articulos) => {
 
 });
 
+const disminuirStock = (prodId) => items[prodId-1].quantity -= 1
+
+
+
+
 //Agregor articulos.id
 const agregarAlshoppingCart = (prodId) => {
     const existe = shoppingCart.some ( prod => prod.id === prodId)
         if (existe) {
           const prod = shoppingCart.map(prod => {
-                if (prod.id === prodId ) {
-                    prod.cantidad++
-                    console.log(prod)
+                if ( items[prodId-1].quantity > 0) {
+                    if (prod.id === prodId ) {
+                        items[prodId-1].quantity -= 1
+                        prod.cantidad++
+                           
+                    } else {
+                        return console.log("stock llego al maximo")
+                    }
                 }
             })  
         } else {
             /* con el contador del principio comienzo desde 1*/
             const item = items.find( (propiedad) => propiedad.id === prodId)
+            items[prodId-1].quantity -= 1
             shoppingCart.push(item)
         }
         actualizarshoppingCart()
@@ -164,6 +179,8 @@ const agregarAlshoppingCart = (prodId) => {
 const eliminarDelshoppingCart = (prodId) => {
     const item = shoppingCart.find((producto) => producto.id === prodId ) 
     const indice = shoppingCart.indexOf(item)
+    items[prodId-1].cantidad = 1
+    items[prodId-1].quantity = items[prodId-1].stockDisponible
     shoppingCart.splice(indice, 1)
     if (shoppingCart.length === 0) {
         localStorage.removeItem('shoppingCart');
@@ -183,6 +200,7 @@ const actualizarshoppingCart = () => {
             <p> Nombre: ${producto.name}</p>
             <p> Precio Unitario: ${producto.price}</p>
             <p>Cantidad: ${producto.cantidad} </p>
+            <p>Stock Disponible: ${producto.quantity} </p>
             <button onclick="eliminarDelshoppingCart(${producto.id})" class="boton-eliminar">Eliminar</button>
             `
 
